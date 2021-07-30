@@ -266,3 +266,6 @@ __pycache__/
 
 # Visual Studio Code settings
 .vscode/
+/.build
+/.build32
+/.build64
