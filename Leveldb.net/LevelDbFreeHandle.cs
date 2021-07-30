@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.ConstrainedExecution;
 using System.Runtime.InteropServices;
-using System.Text;
-using Microsoft.Win32.SafeHandles;
 
 namespace LevelDB
 {
@@ -26,17 +22,20 @@ namespace LevelDB
             this.handle = default(IntPtr);
             return true;
         }
-        
+
         public override bool IsInvalid
         {
-            get { return this.handle != default(IntPtr); }
+            get
+            {
+                return this.handle != default(IntPtr);
+            }
         }
 
         public new void SetHandle(IntPtr p)
         {
-            if(this.handle != default(IntPtr))
+            if (this.handle != default(IntPtr))
                 ReleaseHandle();
-            
+
             base.SetHandle(p);
         }
     }

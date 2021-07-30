@@ -1,8 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
+
 using LevelDB.NativePointer;
-using System.Collections.Generic;
 
 namespace LevelDB
 {
@@ -26,7 +27,7 @@ namespace LevelDB
                 = (GCHandleThis) =>
                       {
                           var h = GCHandle.FromIntPtr(GCHandleThis);
-                          var This = (Inner) h.Target;
+                          var This = (Inner)h.Target;
 
                           This.Dispose();
 
@@ -38,15 +39,15 @@ namespace LevelDB
             private static Compare compare =
                 (GCHandleThis, data1, size1, data2, size2) =>
                     {
-                        var This = (Inner) GCHandle.FromIntPtr(GCHandleThis).Target;
-                        return This.cmp(new NativeArray {baseAddr = data1, byteLength = size1},
-                                        new NativeArray {baseAddr = data2, byteLength = size2});
+                        var This = (Inner)GCHandle.FromIntPtr(GCHandleThis).Target;
+                        return This.cmp(new NativeArray { baseAddr = data1, byteLength = size1 },
+                                        new NativeArray { baseAddr = data2, byteLength = size2 });
                     };
 
             private static Name nameAccessor =
                 (GCHandleThis) =>
                     {
-                        var This = (Inner) GCHandle.FromIntPtr(GCHandleThis).Target;
+                        var This = (Inner)GCHandle.FromIntPtr(GCHandleThis).Target;
                         return This.NameValue;
                     };
 
@@ -81,12 +82,12 @@ namespace LevelDB
                 get
                 {
                     // TODO: this is probably not the most effective way to get a pinned string
-                    var s = ((byte[]) this.namePinned.Target);
+                    var s = ((byte[])this.namePinned.Target);
                     fixed (byte* p = s)
                     {
                         // Note: pinning the GCHandle ensures this value should remain stable 
                         // Note:  outside of the 'fixed' block.
-                        return (IntPtr) p;
+                        return (IntPtr)p;
                     }
                 }
             }
@@ -97,7 +98,7 @@ namespace LevelDB
                     this.namePinned.Free();
             }
         }
-        
+
         private Comparator(string name, Func<NativeArray, NativeArray, int> cmp)
         {
             var inner = new Inner();
@@ -118,10 +119,10 @@ namespace LevelDB
         }
         public static Comparator Create(string name, IComparer<NativeArray> cmp)
         {
-            return new Comparator(name, (a,b)=>cmp.Compare(a,b));
+            return new Comparator(name, (a, b) => cmp.Compare(a, b));
         }
 
-        protected override void  FreeUnManagedObjects()
+        protected override void FreeUnManagedObjects()
         {
             if (this.Handle != default(IntPtr))
             {

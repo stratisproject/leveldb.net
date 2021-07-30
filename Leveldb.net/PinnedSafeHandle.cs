@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
+
 using LevelDB.NativePointer;
 
 namespace LevelDB
@@ -23,12 +21,18 @@ namespace LevelDB
 
         public Ptr<T> Ptr
         {
-            get { return (Ptr<T>) handle; }
+            get
+            {
+                return (Ptr<T>)handle;
+            }
         }
 
         public override bool IsInvalid
         {
-            get { return handle == default(IntPtr); }
+            get
+            {
+                return handle == default(IntPtr);
+            }
         }
 
         protected override bool ReleaseHandle()

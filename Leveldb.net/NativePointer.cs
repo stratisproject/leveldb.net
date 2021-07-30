@@ -1,16 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using LevelDB;
 
 namespace LevelDB.NativePointer
 {
     // note: sizeof(Ptr<>) == sizeof(IntPtr) allows you to create Ptr<Ptr<>> of arbitrary depth and "it just works"
     // IntPtr severely lacks appropriate arithmetic operators; up-promotions to ulong used instead.
-    public struct Ptr<T> 
+    public struct Ptr<T>
         where T : struct
     {
         private IntPtr addr;
@@ -27,7 +24,7 @@ namespace LevelDB.NativePointer
         private static IDeref<T> getDeref()
         {
             if (typeof(T) == typeof(int))
-                return (IDeref<T>) new IntDeref();
+                return (IDeref<T>)new IntDeref();
 
             // TODO: other concrete implementations of IDeref.
             // (can't be made generic; will not type check)
@@ -52,12 +49,18 @@ namespace LevelDB.NativePointer
             return new Ptr<U>(p.addr);
         }
 
-        public void Inc() { Advance((IntPtr)1); }
-        public void Dec() { Advance((IntPtr)(- 1)); }
-        
+        public void Inc()
+        {
+            Advance((IntPtr)1);
+        }
+        public void Dec()
+        {
+            Advance((IntPtr)(-1));
+        }
+
         public void Advance(IntPtr d)
         {
-            addr = (IntPtr)((ulong)addr + sizeof_T*(ulong)d);
+            addr = (IntPtr)((ulong)addr + sizeof_T * (ulong)d);
         }
         public IntPtr Diff(Ptr<T> p2)
         {
@@ -77,7 +80,7 @@ namespace LevelDB.NativePointer
 
         // C-style pointer arithmetic. IntPtr is used in place of C's ptrdiff_t
         #region pointer/intptr arithmetic
-        public static Ptr<T> operator++(Ptr<T> p)
+        public static Ptr<T> operator ++(Ptr<T> p)
         {
             p.Inc();
             return p;
@@ -108,8 +111,14 @@ namespace LevelDB.NativePointer
         }
         public T this[IntPtr offset]
         {
-            get { return (this + offset).Deref(); }
-            set { (this + offset).DerefWrite(value); }
+            get
+            {
+                return (this + offset).Deref();
+            }
+            set
+            {
+                (this + offset).DerefWrite(value);
+            }
         }
         #endregion
 
@@ -118,15 +127,15 @@ namespace LevelDB.NativePointer
         {
             if (!(obj is Ptr<T>))
                 return false;
-            return this == (Ptr<T>) obj;
+            return this == (Ptr<T>)obj;
         }
         public override int GetHashCode()
         {
-            return ((int)addr ^ (int)(IntPtr)((long) addr >> 6));
+            return ((int)addr ^ (int)(IntPtr)((long)addr >> 6));
         }
-        public static bool operator==(Ptr<T> p, Ptr<T> p2)
+        public static bool operator ==(Ptr<T> p, Ptr<T> p2)
         {
-            return (IntPtr) p == (IntPtr) p2;
+            return (IntPtr)p == (IntPtr)p2;
         }
         public static bool operator !=(Ptr<T> p, Ptr<T> p2)
         {
@@ -149,7 +158,7 @@ namespace LevelDB.NativePointer
             return (ulong)(IntPtr)p >= (ulong)(IntPtr)p2;
         }
         #endregion
-        
+
         #region pointer/int/long arithmetic (convenience)
         public static Ptr<T> operator +(Ptr<T> p, long offset)
         {
@@ -165,12 +174,18 @@ namespace LevelDB.NativePointer
         }
         public T this[long offset]
         {
-            get { return this[(IntPtr)offset]; }
-            set { this[(IntPtr) offset] = value; }
+            get
+            {
+                return this[(IntPtr)offset];
+            }
+            set
+            {
+                this[(IntPtr)offset] = value;
+            }
         }
         #endregion
     }
-    
+
     public struct NativeArray
         : IDisposable
     {
@@ -185,18 +200,18 @@ namespace LevelDB.NativePointer
                 handle.Dispose();
         }
 
-        public static NativeArray<T> FromArray<T>(T[] arr, long start=0, long count = -1)
+        public static NativeArray<T> FromArray<T>(T[] arr, long start = 0, long count = -1)
             where T : struct
         {
             if (count < 0) count = arr.LongLength - start;
 
             var h = new PinnedSafeHandle<T>(arr);
-            return new NativeArray<T> {baseAddr = h.Ptr + start, count = (IntPtr)count, handle = h};
+            return new NativeArray<T> { baseAddr = h.Ptr + start, count = (IntPtr)count, handle = h };
         }
     }
 
     public struct NativeArray<T>
-        : IEnumerable<T> 
+        : IEnumerable<T>
         , IDisposable
         where T : struct
     {
@@ -204,20 +219,20 @@ namespace LevelDB.NativePointer
         public IntPtr count;
 
         public SafeHandle handle;
-        
+
         public static implicit operator NativeArray(NativeArray<T> arr)
         {
             return new NativeArray
-                       {
-                           baseAddr = (IntPtr) arr.baseAddr,
-                           byteLength = (IntPtr)((ulong)(IntPtr)(arr.baseAddr+arr.count) - (ulong)(IntPtr)(arr.baseAddr)),
-                           handle = arr.handle
-                       };
+            {
+                baseAddr = (IntPtr)arr.baseAddr,
+                byteLength = (IntPtr)((ulong)(IntPtr)(arr.baseAddr + arr.count) - (ulong)(IntPtr)(arr.baseAddr)),
+                handle = arr.handle
+            };
         }
         public static explicit operator NativeArray<T>(NativeArray arr)
         {
-            var baseAddr = (Ptr<T>) arr.baseAddr;
-            var count = ((Ptr<T>) (IntPtr) ((ulong) arr.baseAddr + (ulong) arr.byteLength)) - baseAddr;
+            var baseAddr = (Ptr<T>)arr.baseAddr;
+            var count = ((Ptr<T>)(IntPtr)((ulong)arr.baseAddr + (ulong)arr.byteLength)) - baseAddr;
 
             return new NativeArray<T> { baseAddr = baseAddr, count = count, handle = arr.handle };
         }
@@ -226,7 +241,7 @@ namespace LevelDB.NativePointer
 
         public IEnumerator<T> GetEnumerator()
         {
-            return new Enumerator(baseAddr, baseAddr+count, handle);
+            return new Enumerator(baseAddr, baseAddr + count, handle);
         }
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
@@ -291,7 +306,10 @@ namespace LevelDB.NativePointer
 
             object System.Collections.IEnumerator.Current
             {
-                get { return Current; }
+                get
+                {
+                    return Current;
+                }
             }
         }
 
@@ -317,8 +335,14 @@ namespace LevelDB.NativePointer
         }
         public T this[long offset]
         {
-            get { return this[(IntPtr) offset]; }
-            set { this[(IntPtr) offset] = value; }
+            get
+            {
+                return this[(IntPtr)offset];
+            }
+            set
+            {
+                this[(IntPtr)offset] = value;
+            }
         }
 
         public void Dispose()
@@ -327,7 +351,7 @@ namespace LevelDB.NativePointer
                 handle.Dispose();
         }
     }
-    
+
     #region dereferencing abstraction
     interface IDeref<T>
     {

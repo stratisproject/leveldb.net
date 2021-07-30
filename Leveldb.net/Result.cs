@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
 namespace LevelDB
 {
     //public class Result : LevelDBHandle, IEnumerable<byte>, IEnumerable<int>

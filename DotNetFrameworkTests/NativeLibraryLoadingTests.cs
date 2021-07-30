@@ -1,10 +1,11 @@
 ﻿using System;
+
 using LevelDB;
+
 using NUnit.Framework;
 
 namespace DotNetFrameworkTests
 {
-
     [TestFixture]
     public class NativeLibraryLoadingTests
     {
@@ -13,12 +14,12 @@ namespace DotNetFrameworkTests
         {
             try
             {
-                using (new DB(new Options {CreateIfMissing = true}, "LoadingTest"))
+                using (new DB(new Options { CreateIfMissing = true }, "./LoadingTest"))
                 {
                     Assert.Pass();
                 }
             }
-            catch(Exception ex) when (!(ex is SuccessException))
+            catch (Exception ex) when (!(ex is SuccessException))
             {
                 Assert.Fail("Cannot create database: " + ex.Message);
             }

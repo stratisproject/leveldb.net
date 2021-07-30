@@ -1,23 +1,23 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;net4</TargetFrameworks>
-    <Configurations>Debug;Release</Configurations>
+	<TargetFrameworks>netstandard2.0;net4</TargetFrameworks>
+	<Configurations>Debug;Release</Configurations>
 	<AssemblyOriginatorKeyFile>..\LevelDB.snk</AssemblyOriginatorKeyFile>
-    <SignAssembly>true</SignAssembly>
-    <DelaySign>false</DelaySign>
+	<SignAssembly>true</SignAssembly>
+	<DelaySign>false</DelaySign>
 	<PackageId>LevelDB.Standard</PackageId>
   </PropertyGroup>
   <PropertyGroup>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <Version>2.1.6</Version>
-    <AssemblyVersion>2.1.6.0</AssemblyVersion>
-    <FileVersion>2.1.6.0
-    </FileVersion>
+	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+	<Version>2.2.0</Version>
+	<AssemblyVersion>2.2.0.0</AssemblyVersion>
+	<FileVersion>2.2.0.0
+</FileVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-    <DefineConstants>NET_STANDARD_20</DefineConstants>
+	<DefineConstants>NET_STANDARD_20</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
-    <Folder Include="Properties\" />
+	<Folder Include="Properties\" />
   </ItemGroup>
 </Project>

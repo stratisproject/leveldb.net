@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
+
 using LevelDB.NativePointer;
 
 namespace LevelDB
@@ -11,7 +12,7 @@ namespace LevelDB
     /// A DB is a persistent ordered map from keys to values.
     /// A DB is safe for concurrent access from multiple threads without any external synchronization.
     /// </summary>
-    public class DB : LevelDBHandle, IEnumerable<KeyValuePair<string, string>>, IEnumerable<KeyValuePair<byte[],byte[]>>, IEnumerable<KeyValuePair<int, int[]>>
+    public class DB : LevelDBHandle, IEnumerable<KeyValuePair<string, string>>, IEnumerable<KeyValuePair<byte[], byte[]>>, IEnumerable<KeyValuePair<int, int[]>>
     {
         public static Encoding DefaultEncoding = Encoding.UTF8;
 
@@ -41,8 +42,8 @@ namespace LevelDB
             }
         }
 
-        public DB(Options options, string name) 
-            : this (options, name, DefaultEncoding)
+        public DB(Options options, string name)
+            : this(options, name, DefaultEncoding)
         {
         }
 
@@ -247,7 +248,7 @@ namespace LevelDB
         /// </summary>
         public int[] Get(int key, ReadOptions options)
         {
-            
+
             IntPtr error;
             IntPtr length;
             IntPtr v;
@@ -258,7 +259,7 @@ namespace LevelDB
             {
                 try
                 {
-                    var bytes = new int[(long)length/4];
+                    var bytes = new int[(long)length / 4];
 
                     // TODO: consider >2GB-1
                     Marshal.Copy(v, bytes, 0, checked((int)bytes.LongLength));
@@ -296,7 +297,7 @@ namespace LevelDB
             handle.SetHandle((IntPtr)v);
 
             // round down, truncating the array slightly if needed
-            var count = (IntPtr)((ulong)length/Ptr<T>.sizeof_T);
+            var count = (IntPtr)((ulong)length / Ptr<T>.sizeof_T);
 
             return new NativeArray<T> { baseAddr = v, count = count, handle = handle };
         }
@@ -388,8 +389,8 @@ namespace LevelDB
         protected override void FreeUnManagedObjects()
         {
             if (this.Handle != default(IntPtr))
-            LevelDBInterop.leveldb_close(this.Handle);
-            
+                LevelDBInterop.leveldb_close(this.Handle);
+
             // it's critical that the database be closed first, as the logger and cache may depend on it.
 
             if (this._Cache != null)
@@ -397,16 +398,16 @@ namespace LevelDB
 
             if (this._Comparator != null)
                 this._Comparator.Dispose();
-            
+
             if (this._InfoLog != null)
                 this._InfoLog.Dispose();
         }
-        
+
         IEnumerator IEnumerable.GetEnumerator()
         {
             return this.GetEnumerator();
         }
-        
+
         IEnumerator<KeyValuePair<string, string>> IEnumerable<KeyValuePair<string, string>>.GetEnumerator()
         {
             using (var sn = this.CreateSnapshot())
@@ -449,6 +450,6 @@ namespace LevelDB
             }
         }
 
-        
+
     }
 }

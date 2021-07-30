@@ -6,7 +6,7 @@ namespace LevelDB
     /// <summary>
     /// An iterator yields a sequence of key/value pairs from a database.
     /// </summary>
-    public class Iterator: LevelDBHandle
+    public class Iterator : LevelDBHandle
     {
         private readonly Encoding _encoding;
 
@@ -150,8 +150,8 @@ namespace LevelDB
             var value = LevelDBInterop.leveldb_iter_value(this.Handle, out length);
             Throw();
 
-            var bytes = new int[length/4];
-            Marshal.Copy(value, bytes, 0, length/4);
+            var bytes = new int[length / 4];
+            Marshal.Copy(value, bytes, 0, length / 4);
             return bytes;
         }
 
@@ -173,7 +173,7 @@ namespace LevelDB
             int length;
             var value = LevelDBInterop.leveldb_iter_value(this.Handle, out length);
             Throw();
-            
+
             var bytes = new byte[length];
             Marshal.Copy(value, bytes, 0, length);
             return bytes;
