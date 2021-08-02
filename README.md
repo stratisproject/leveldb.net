@@ -8,13 +8,12 @@ This project aims to provide .NET bindings to LevelDB in addition to making leve
 
 # Building leveldb #
 
-See file "WINDOWS" for instructions on how to build this in Windows.
+- Install CMake 3.15+
+- Build
 
-- You'll need to install some [Boost libraries](www.boost.org) to build against
-- You'll need to create a Microsoft Visual C++ project to build this
-- The [WINDOWS file](https://github.com/Reactive-Extensions/LevelDB/blob/master/leveldbNative/WINDOWS) explains both of these processes.
+-- Windows/VS2019: ```build.cmd```
 
-We're looking for volunteers to build a true Win32 port of LevelDB for Windows.
+-- Linux: ```./build.sh```
 
 # Installation #
 LevelDB.Standard is available as a NuGet package:
