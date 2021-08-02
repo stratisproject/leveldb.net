@@ -11,9 +11,13 @@ This project aims to provide .NET bindings to LevelDB in addition to making leve
 - Install CMake 3.15+
 - Build
 
--- Windows/VS2019: ```build.cmd```
+    - Windows/VS2019:
+```build-leveldb.cmd```
 
--- Linux: ```./build.sh```
+    - Linux:
+```./build-leveldb.sh```
+
+
 
 # Installation #
 LevelDB.Standard is available as a NuGet package:
@@ -49,7 +53,7 @@ The DB class also implements the IDisposable interface which allows you to use t
 
 ```csharp
 var options = new Options { CreateIfMissing = true };
-using (var db = new DB(options, @"C:\temp\tempdb")) 
+using (var db = new DB(options, @"C:\temp\tempdb"))
 {
     // Use leveldb
 }
@@ -67,7 +71,7 @@ keyValue.Put(key, "blue");
 
 // Print out the value
 var keyValue = db.Get(key);
-Console.WriteLine(keyValue); 
+Console.WriteLine(keyValue);
 
 // Delete the key
 db.Delete(key);
@@ -104,7 +108,7 @@ var writeOptions = new WriteOptions { Sync = true };
 db.Put("New York", "blue");
 ```
 
-The downside of this is that due to a process crash, these updates may be lost.  
+The downside of this is that due to a process crash, these updates may be lost.
 
 As an alternative, atomic updates can be used as a safer alternative with a synchronous write which the cost will be amortized across all of the writes in the batch.
 
@@ -120,7 +124,7 @@ using (var db = new DB(options, path))
 		var keyValue = db.Get("New York");
 		batch.Put("Tampa", keyValue);
 		batch.Delete("New York");
-		
+
 		// Write the batch
 		var writeOptions = new WriteOptions { Sync = true; }
 		db.Write(batch, writeOptions);
@@ -133,11 +137,11 @@ using (var db = new DB(options, path))
 The leveldb bindings also supports iteration using the standard GetEnumerator pattern.  In this example, we can select all keys in a LINQ expression and then iterate the results, printing out each key.
 
 ```csharp
-var keys = 
+var keys =
     from kv in db as IEnumerable<KeyValuePair<string, string>>
     select kv.Key;
 
-foreach (var key in keys) 
+foreach (var key in keys)
 {
 	Console.WriteLine("Key: {0}", key);
 }
@@ -150,7 +154,7 @@ The following example shows how you can iterate all the keys as strings.
 using (var iterator = db.CreateIterator())
 {
 	// Iterate to print the keys as strings
-	for (it.SeekToFirst(); it.IsValid(); it.Next()) 
+	for (it.SeekToFirst(); it.IsValid(); it.Next())
 	{
 	    Console.WriteLine("Key as string: {0}", it.KeyAsString());
 	}
@@ -164,7 +168,7 @@ The next example shows how you can iterate all the values in the leveldb instanc
 using (var iterator = db.CreateIterator())
 {
 	// Iterate in reverse to print the values as strings
-	for (it.SeekToLast(); it.IsValid(); it.Prev()) 
+	for (it.SeekToLast(); it.IsValid(); it.Prev())
 	{
 	    Console.WriteLine("Value as string: {0}", it.ValueAsString());
 	}
@@ -173,7 +177,7 @@ using (var iterator = db.CreateIterator())
 
 ## Snapshots ##
 
-Snapshots in leveldb provide a consistent read-only view of the entire state of the current key-value store.  Note that the Snapshot implements IDisposable and should be disposed to allow leveldb to get rid of state that was being maintained just to support reading as of that snapshot. 
+Snapshots in leveldb provide a consistent read-only view of the entire state of the current key-value store.  Note that the Snapshot implements IDisposable and should be disposed to allow leveldb to get rid of state that was being maintained just to support reading as of that snapshot.
 
 ```csharp
 var options = new Options { CreateIfMissing = true }
@@ -183,7 +187,7 @@ using (var db = new Db(options, path))
     db.Put("London", "red");
     db.Delete("New York");
 
-	using (var snapshot = db.CreateSnapshot()) 
+	using (var snapshot = db.CreateSnapshot())
 	{
 		var readOptions = new ReadOptions {Snapshot = snapShot};
 
@@ -191,7 +195,7 @@ using (var db = new Db(options, path))
 
 		// Will return null as the snapshot created before
 		// the updates happened
-		Console.WriteLine(db.Get("New York", readOptions)); 
+		Console.WriteLine(db.Get("New York", readOptions));
 	}
 }
 ```

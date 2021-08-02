@@ -12,6 +12,7 @@ option(BUILD_SHARED_LIBS "" ON)
 
 set(LEVELDB_ROOT "./leveldb/")
 include_directories(${LEVELDB_ROOT})
+set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++")
 
 
 # C standard can be overridden when this is used as a sub-project.
@@ -218,6 +219,11 @@ target_sources(leveldb
 set_property(TARGET leveldb PROPERTY
   MSVC_RUNTIME_LIBRARY "MultiThreaded")
 
+if (LEVELDB32)
+  target_compile_options(leveldb PRIVATE -m32)
+  target_link_options(leveldb PRIVATE -m32)
+endif (LEVELDB32)
+
 if (WIN32)
   target_sources(leveldb
     PRIVATE
@@ -275,15 +281,15 @@ if(HAVE_CLANG_THREAD_SAFETY)
 endif(HAVE_CLANG_THREAD_SAFETY)
 
 if(HAVE_CRC32C)
-  target_link_libraries(leveldb crc32c)
+  target_link_libraries(leveldb crc32c -Bstatic)
 endif(HAVE_CRC32C)
 if(HAVE_SNAPPY)
-  target_link_libraries(leveldb snappy)
+  target_link_libraries(leveldb snappy -Bstatic)
 endif(HAVE_SNAPPY)
 if(HAVE_TCMALLOC)
-  target_link_libraries(leveldb tcmalloc)
+  target_link_libraries(leveldb tcmalloc -Bstatic)
 endif(HAVE_TCMALLOC)
 
 # Needed by port_stdcxx.h
 find_package(Threads REQUIRED)
-target_link_libraries(leveldb Threads::Threads)
+target_link_libraries(leveldb Threads::Threads -Bstatic)
