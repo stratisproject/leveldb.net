@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package>
 	<metadata>
-		<id>LevelDB.Standard</id>
+		<id>Stratis.LevelDB.Standard</id>
 		<version>$Version$</version>
 		<title>Level DB for .Net Standard</title>
 		<authors>oodrive, stratisproject</authors>
