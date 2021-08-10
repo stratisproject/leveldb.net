@@ -10,6 +10,14 @@ project(leveldb VERSION 1.23.0 LANGUAGES C CXX)
 #
 option(BUILD_SHARED_LIBS "" ON)
 
+if(LEVELDB_ARM)
+  set(CMAKE_C_COMPILER arm-linux-gnueabihf-gcc)
+  set(CMAKE_CXX_COMPILER arm-linux-gnueabihf-g++)
+elseif(LEVELDB_AARCH64)
+  set(CMAKE_C_COMPILER aarch64-linux-gnu-gcc)
+  set(CMAKE_CXX_COMPILER aarch64-linux-gnu-g++)
+endif()
+
 set(LEVELDB_ROOT "./leveldb/")
 include_directories(${LEVELDB_ROOT})
 set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++")

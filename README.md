@@ -14,7 +14,7 @@ This project aims to provide .NET bindings to LevelDB in addition to making leve
     - Windows/VS2019:
 ```build-leveldb.cmd```
 
-    - Linux:
+    - Linux (x86-64 with ARM/AArch64 cross-compilers):
 ```./build-leveldb.sh```
 
 
