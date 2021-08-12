@@ -12,11 +12,20 @@ This project aims to provide .NET bindings to LevelDB in addition to making leve
 - Build
 
     - Windows/VS2019:
-```build-leveldb.cmd```
+    ```sh
+    build-leveldb.cmd
+    ```
 
     - Linux (x86-64 with ARM/AArch64 cross-compilers):
-```./build-leveldb.sh```
-
+        - Ubuntu (x86-64):
+        ```sh
+        sudo dpkg --add-architecture i386
+        sudo apt update
+        sudo apt install gcc-arm-linux-gnueabihf gcc-aarch64-linux-gnu \
+        g++-arm-linux-gnueabihf g++-aarch64-linux-gnu \
+        libc-dev:i386
+        ```
+    ```./build-leveldb.sh```
 
 
 # Installation #
@@ -116,19 +125,19 @@ As an alternative, atomic updates can be used as a safer alternative with a sync
 var options = new Options { CreateIfMissing = true };
 using (var db = new DB(options, path))
 {
-	db.Put("New York", "blue");
+    db.Put("New York", "blue");
 
-	// Create a batch to set key2 and delete key1
-	using (var batch = new WriteBatch())
-	{
-		var keyValue = db.Get("New York");
-		batch.Put("Tampa", keyValue);
-		batch.Delete("New York");
+    // Create a batch to set key2 and delete key1
+    using (var batch = new WriteBatch())
+    {
+        var keyValue = db.Get("New York");
+        batch.Put("Tampa", keyValue);
+        batch.Delete("New York");
 
-		// Write the batch
-		var writeOptions = new WriteOptions { Sync = true; }
-		db.Write(batch, writeOptions);
-	}
+        // Write the batch
+        var writeOptions = new WriteOptions { Sync = true; }
+        db.Write(batch, writeOptions);
+    }
 }
 ```
 
@@ -143,7 +152,7 @@ var keys =
 
 foreach (var key in keys)
 {
-	Console.WriteLine("Key: {0}", key);
+    Console.WriteLine("Key: {0}", key);
 }
 ```
 
@@ -153,11 +162,11 @@ The following example shows how you can iterate all the keys as strings.
 // Create new iterator
 using (var iterator = db.CreateIterator())
 {
-	// Iterate to print the keys as strings
-	for (it.SeekToFirst(); it.IsValid(); it.Next())
-	{
-	    Console.WriteLine("Key as string: {0}", it.KeyAsString());
-	}
+    // Iterate to print the keys as strings
+    for (it.SeekToFirst(); it.IsValid(); it.Next())
+    {
+        Console.WriteLine("Key as string: {0}", it.KeyAsString());
+    }
 }
 ```
 
@@ -167,11 +176,11 @@ The next example shows how you can iterate all the values in the leveldb instanc
 // Create new iterator
 using (var iterator = db.CreateIterator())
 {
-	// Iterate in reverse to print the values as strings
-	for (it.SeekToLast(); it.IsValid(); it.Prev())
-	{
-	    Console.WriteLine("Value as string: {0}", it.ValueAsString());
-	}
+    // Iterate in reverse to print the values as strings
+    for (it.SeekToLast(); it.IsValid(); it.Prev())
+    {
+        Console.WriteLine("Value as string: {0}", it.ValueAsString());
+    }
 }
 ```
 
@@ -187,16 +196,16 @@ using (var db = new Db(options, path))
     db.Put("London", "red");
     db.Delete("New York");
 
-	using (var snapshot = db.CreateSnapshot())
-	{
-		var readOptions = new ReadOptions {Snapshot = snapShot};
+    using (var snapshot = db.CreateSnapshot())
+    {
+        var readOptions = new ReadOptions {Snapshot = snapShot};
 
-		db.Put("New York", "blue");
+        db.Put("New York", "blue");
 
-		// Will return null as the snapshot created before
-		// the updates happened
-		Console.WriteLine(db.Get("New York", readOptions));
-	}
+        // Will return null as the snapshot created before
+        // the updates happened
+        Console.WriteLine(db.Get("New York", readOptions));
+    }
 }
 ```
 
@@ -221,7 +230,7 @@ using (var db = new Db(options, path))
     var key = NativeArray.FromArray(new int[] { 3 });
     using (var xs = db.GetRaw<int>(key))
     {
-		// Prints 1 2 3
+        // Prints 1 2 3
         Console.WriteLine("get {0} => [{1}]", key[0], string.Join(",", xs));
     }
 }
