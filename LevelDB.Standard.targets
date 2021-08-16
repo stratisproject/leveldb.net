@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<WindowsNativex86Path>$(MSBuildThisFileDirectory)..\..\runtimes\win-x86\native\leveldb.dll</WindowsNativex86Path>
 		<WindowsNativex64Path>$(MSBuildThisFileDirectory)..\..\runtimes\win-x64\native\leveldb.dll</WindowsNativex64Path>
-		<OSXNativex64Path>$(MSBuildThisFileDirectory)..\..\runtimes\osx-x64\native\leveldb.dll</OSXNativex64Path>
+		<OSXNativex64Path>$(MSBuildThisFileDirectory)..\..\runtimes\osx-x64\native\libleveldb.dylib</OSXNativex64Path>
 	</PropertyGroup>
 
 	<!-- Copy native libraries for Windows -->
