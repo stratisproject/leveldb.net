@@ -21,8 +21,8 @@ This project aims to provide .NET bindings to LevelDB in addition to making leve
         ```sh
         sudo dpkg --add-architecture i386
         sudo apt update
-        sudo apt install gcc-arm-linux-gnueabihf gcc-aarch64-linux-gnu && \
-        g++-arm-linux-gnueabihf g++-aarch64-linux-gnu && \
+        sudo apt install gcc-arm-linux-gnueabihf gcc-aarch64-linux-gnu \
+        g++-arm-linux-gnueabihf g++-aarch64-linux-gnu \
         libc-dev:i386 libstdc++-7-dev:i386 gcc-multilib g++-multilib
         ```
     ```./build-leveldb.sh```
