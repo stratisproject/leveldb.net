@@ -27,6 +27,11 @@ This project aims to provide .NET bindings to LevelDB in addition to making leve
         ```
     ```./build-leveldb.sh```
 
+    - macOS (x86-64):
+    ```
+    build-leveldb-osx.zsh
+    ```
+
 
 # Installation #
 LevelDB.Standard is available as a NuGet package:

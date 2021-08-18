@@ -20,7 +20,10 @@ endif()
 
 set(LEVELDB_ROOT "./leveldb/")
 include_directories(${LEVELDB_ROOT})
-set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++")
+
+if(NOT APPLE)
+  set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++")
+endif()
 
 
 # C standard can be overridden when this is used as a sub-project.

@@ -271,3 +271,4 @@ __pycache__/
 /.build64
 /.build-aarch64
 /.build-arm
+/.build-osx
