@@ -272,3 +272,6 @@ __pycache__/
 /.build-aarch64
 /.build-arm
 /.build-osx
+
+# macOS files
+.DS_Store
