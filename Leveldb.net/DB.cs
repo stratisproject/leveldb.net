@@ -14,6 +14,8 @@ namespace LevelDB
     /// </summary>
     public class DB : LevelDBHandle, IEnumerable<KeyValuePair<string, string>>, IEnumerable<KeyValuePair<byte[], byte[]>>, IEnumerable<KeyValuePair<int, int[]>>
     {
+        static InternalLogger _Logger = InternalLogger.Create();
+
         public static Encoding DefaultEncoding = Encoding.UTF8;
 
         private Cache _Cache;
@@ -60,6 +62,10 @@ namespace LevelDB
             this._encoding = encoding;
 
             Throw(error, msg => new UnauthorizedAccessException(msg));
+        }
+
+        protected void Execute()
+        {
         }
 
         public void Close()
@@ -398,9 +404,6 @@ namespace LevelDB
 
             if (this._Comparator != null)
                 this._Comparator.Dispose();
-
-            if (this._InfoLog != null)
-                this._InfoLog.Dispose();
         }
 
         IEnumerator IEnumerable.GetEnumerator()

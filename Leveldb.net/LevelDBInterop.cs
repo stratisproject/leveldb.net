@@ -37,14 +37,6 @@ namespace LevelDB
 #endif
         }
 
-        #region Logger
-        [DllImport(DllName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr leveldb_logger_create(IntPtr /* Action<string> */ logger);
-
-        [DllImport(DllName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void leveldb_logger_destroy(IntPtr /* logger*/ option);
-        #endregion
-
         #region DB
         [DllImport(DllName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr leveldb_open(IntPtr /* Options*/ options, string name, out IntPtr error);

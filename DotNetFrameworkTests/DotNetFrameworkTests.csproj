@@ -41,6 +41,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="LoggerTest.cs" />
     <Compile Include="NativeLibraryLoadingTests.cs" />
     <Compile Include="NativeLibraryVersionTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
