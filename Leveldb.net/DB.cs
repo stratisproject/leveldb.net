@@ -64,8 +64,21 @@ namespace LevelDB
             Throw(error, msg => new UnauthorizedAccessException(msg));
         }
 
-        protected void Execute()
+        protected void Execute(Func<IntPtr> func, params Stringable[] args)
         {
+            var error = IntPtr.Zero;
+
+            try
+            {
+                _Logger.Debug("", args);
+                error = func();
+            }
+            catch (Exception x)
+            {
+                _Logger.Error(x.ToString(), args);
+            }
+
+            Throw(error);
         }
 
         public void Close()
@@ -104,9 +117,13 @@ namespace LevelDB
         /// </summary>
         public void Put(byte[] key, byte[] value, WriteOptions options)
         {
-            IntPtr error;
-            LevelDBInterop.leveldb_put(this.Handle, options.Handle, key, (IntPtr)key.LongLength, value, (IntPtr)value.LongLength, out error);
-            Throw(error);
+            Execute(() =>
+            {
+                IntPtr error;
+                LevelDBInterop.leveldb_put(this.Handle, options.Handle, key, (IntPtr)key.LongLength, value, (IntPtr)value.LongLength, out error);
+                return error;
+            }
+            , key, value);
         }
 
         /// <summary>
