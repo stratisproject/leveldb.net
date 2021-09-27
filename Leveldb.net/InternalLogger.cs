@@ -9,6 +9,7 @@ namespace LevelDB
         public static implicit operator Stringable(byte[] v) => new StringableByteArray(v);
         public static implicit operator Stringable(int[] v) => new StringableIntArray(v);
         public static implicit operator Stringable(IntPtr v) => new Stringable<IntPtr>(v);
+        public static implicit operator Stringable(string v) => new Stringable<string>(v);
     }
 
     public class Stringable<T> : Stringable
