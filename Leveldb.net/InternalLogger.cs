@@ -1,11 +1,14 @@
 ﻿using System;
+using System.Linq;
 
 namespace LevelDB
 {
     public class Stringable
     {
-        public static implicit operator Stringable(int v) => new StringableInt(v);
+        public static implicit operator Stringable(int v) => new Stringable<int>(v);
         public static implicit operator Stringable(byte[] v) => new StringableByteArray(v);
+        public static implicit operator Stringable(int[] v) => new StringableIntArray(v);
+        public static implicit operator Stringable(IntPtr v) => new Stringable<IntPtr>(v);
     }
 
     public class Stringable<T> : Stringable
@@ -16,13 +19,6 @@ namespace LevelDB
         public Stringable(T value)
         {
             _value = value;
-        }
-    }
-
-    public class StringableInt : Stringable<int>
-    {
-        public StringableInt(int v) : base(v)
-        {
         }
 
         public override string ToString()
@@ -43,6 +39,23 @@ namespace LevelDB
         }
     }
 
+    public class StringableIntArray : Stringable<int[]>
+    {
+        public StringableIntArray(int[] v) : base(v)
+        {
+        }
+
+        public override string ToString()
+        {
+            if (_value == null)
+            {
+                return null;
+            }
+
+            return _value.Select(a => a.ToString()).Aggregate((a, b) => a + ", " + b);
+        }
+    }
+
     public class InternalLogger
     {
         static NLog.Logger _Logger = NLog.LogManager.GetCurrentClassLogger();
@@ -58,22 +71,32 @@ namespace LevelDB
             return new InternalLogger();
         }
 
+        //public static string _func_([CallerMemberName] string funcName = "")
+        //{
+        //    return funcName;
+        //}
+
+        protected string ToString(params Stringable[] args)
+        {
+            return args.Select(a => '[' + a.ToString() + ']').Aggregate((a, b) => a + ", " + b);
+        }
+
         public void Debug(string message, params Stringable[] args)
         {
             if (this.IsDebugEnabled)
             {
-                _Logger.Debug(message, args);
+                _Logger.Debug($"{message}: {ToString(args)}");
             }
         }
 
         public void Info(string message, params Stringable[] args)
         {
-            _Logger.Info(message, args);
+            _Logger.Info($"{message}: {ToString(args)}");
         }
 
         public void Error(string message, params Stringable[] args)
         {
-            _Logger.Error(message, args);
+            _Logger.Error($"{message}: {ToString(args)}");
         }
     }
 }

@@ -14,7 +14,7 @@ namespace LevelDB
     /// </summary>
     public class DB : LevelDBHandle, IEnumerable<KeyValuePair<string, string>>, IEnumerable<KeyValuePair<byte[], byte[]>>, IEnumerable<KeyValuePair<int, int[]>>
     {
-        static InternalLogger _Logger = InternalLogger.Create();
+        InternalLogger _Logger = InternalLogger.Create();
 
         public static Encoding DefaultEncoding = Encoding.UTF8;
 
@@ -60,6 +60,7 @@ namespace LevelDB
             this._Comparator = options.Comparator;
             this.Handle = LevelDBInterop.leveldb_open(options.Handle, name, out error);
             this._encoding = encoding;
+            this._Logger.IsDebugEnabled = options.IsInternalDebugLoggerEnabled;
 
             Throw(error, msg => new UnauthorizedAccessException(msg));
         }
@@ -123,7 +124,7 @@ namespace LevelDB
                 LevelDBInterop.leveldb_put(this.Handle, options.Handle, key, (IntPtr)key.LongLength, value, (IntPtr)value.LongLength, out error);
                 return error;
             }
-            , key, value);
+            , this.Handle, key, value);
         }
 
         /// <summary>
@@ -141,9 +142,13 @@ namespace LevelDB
         /// </summary>
         public void Put(int key, int[] value, WriteOptions options)
         {
-            IntPtr error;
-            LevelDBInterop.leveldb_put(this.Handle, options.Handle, ref key, (IntPtr)sizeof(int), value, checked((IntPtr)(value.LongLength * 4)), out error);
-            Throw(error);
+            Execute(() =>
+            {
+                IntPtr error;
+                LevelDBInterop.leveldb_put(this.Handle, options.Handle, ref key, (IntPtr)sizeof(int), value, checked((IntPtr)(value.LongLength * 4)), out error);
+                return error;
+            },
+            this.Handle, key, value);
         }
 
         /// <summary>
