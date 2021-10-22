@@ -5,7 +5,7 @@
 	<AssemblyOriginatorKeyFile>..\LevelDB.snk</AssemblyOriginatorKeyFile>
 	<SignAssembly>true</SignAssembly>
 	<DelaySign>false</DelaySign>
-	<PackageId>Stratis.LevelDB.Standard</PackageId>
+	<PackageId>Stratis.LevelDB.NET</PackageId>
   </PropertyGroup>
   <PropertyGroup>
 	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
