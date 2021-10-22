@@ -9,7 +9,7 @@
   </PropertyGroup>
   <PropertyGroup>
 	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-	<Version>1.23.0</Version>
+	<Version>1.26.0</Version>
 	<AssemblyVersion>1.23.0.0</AssemblyVersion>
 	<FileVersion>1.23.0.0</FileVersion>
 	<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
