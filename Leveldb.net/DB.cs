@@ -1,6 +1,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -23,7 +25,7 @@ namespace LevelDB
         private Logger _InfoLog;
         private Comparator _Comparator;
         private Encoding _encoding;
-
+        private static string _CallLog;
 
         static void Throw(IntPtr error)
         {
@@ -64,16 +66,27 @@ namespace LevelDB
             this._encoding = encoding;
             this._Logger.IsDebugEnabled = options.IsInternalDebugLoggerEnabled;
 
+            if (this._Logger.IsDebugEnabled)
+            {
+                var nodeLog = InternalLogger._Logger.Factory.Configuration.ConfiguredNamedTargets
+                    .Where(t => t is NLog.Targets.FileTarget fileTarget)
+                    .Select(t => ((NLog.Targets.FileTarget)t).FileName.ToString())
+                    .FirstOrDefault();
+
+                if (nodeLog != null)
+                    _CallLog = Path.Combine(Path.GetDirectoryName(nodeLog), "LevelDBCalls.txt");
+            }
+
             Throw(error, msg => new UnauthorizedAccessException(msg));
         }
 
-        protected static void Execute(InternalLogger logger, Func<IntPtr> func, params Stringable[] args)
+        protected static void Execute(InternalLogger logger, Func<IntPtr> func, string funcName, params Stringable[] args)
         {
             var error = IntPtr.Zero;
 
             try
             {
-                logger.Debug("", args);
+                logger.LogCall(funcName, args);
                 error = func();
             }
             catch (Exception x)
@@ -84,9 +97,9 @@ namespace LevelDB
             Throw(error);
         }
 
-        protected void Execute(Func<IntPtr> func, params Stringable[] args)
+        protected void Execute(Func<IntPtr> func, string funcName, params Stringable[] args)
         {
-            Execute(_Logger, func, args);
+            Execute(_Logger, func, funcName, args);
         }
 
         public void Close()
@@ -131,7 +144,7 @@ namespace LevelDB
                 LevelDBInterop.leveldb_put(this.Handle, options.Handle, key, (IntPtr)key.LongLength, value, (IntPtr)value.LongLength, out error);
                 return error;
             },
-            this.Handle, key, value);
+            nameof(LevelDBInterop.leveldb_put), this.Handle, key, value);
         }
 
         /// <summary>
@@ -155,7 +168,7 @@ namespace LevelDB
                 LevelDBInterop.leveldb_put(this.Handle, options.Handle, ref key, (IntPtr)sizeof(int), value, checked((IntPtr)(value.LongLength * 4)), out error);
                 return error;
             },
-            this.Handle, key, value);
+            nameof(LevelDBInterop.leveldb_put), this.Handle, key, value);
         }
 
         /// <summary>
@@ -199,7 +212,7 @@ namespace LevelDB
                 LevelDBInterop.leveldb_delete(this.Handle, options.Handle, key, (IntPtr)key.LongLength, out error);
                 return error;
             },
-            this.Handle, key);
+            nameof(LevelDBInterop.leveldb_delete), this.Handle, key);
         }
 
         public void Write(WriteBatch batch)
@@ -215,7 +228,7 @@ namespace LevelDB
                 LevelDBInterop.leveldb_write(this.Handle, options.Handle, batch.Handle, out error);
                 return error;
             },
-            this.Handle, options.Handle, batch.Handle);
+            nameof(LevelDBInterop.leveldb_write), this.Handle, options.Handle, batch.Handle);
         }
 
         /// <summary>
@@ -262,7 +275,7 @@ namespace LevelDB
                 v = LevelDBInterop.leveldb_get(this.Handle, options.Handle, key, (IntPtr)key.LongLength, out length, out error);
                 return error;
             },
-            this.Handle, options.Handle, key);
+            nameof(LevelDBInterop.leveldb_get), this.Handle, options.Handle, key);
 
             if (v != IntPtr.Zero)
             {
@@ -307,7 +320,7 @@ namespace LevelDB
                 v = LevelDBInterop.leveldb_get(this.Handle, options.Handle, ref key, (IntPtr)sizeof(int), out length, out error);
                 return error;
             },
-            this.Handle, options.Handle, key);
+            nameof(LevelDBInterop.leveldb_get), this.Handle, options.Handle, key);
 
             if (v != IntPtr.Zero)
             {
@@ -355,7 +368,7 @@ namespace LevelDB
 
                 return error;
             },
-            this.Handle, options.Handle, key.baseAddr);
+            nameof(LevelDBInterop.leveldb_get), this.Handle, options.Handle, key.baseAddr);
 
             handle.SetHandle((IntPtr)v);
 
@@ -390,7 +403,7 @@ namespace LevelDB
 
                 return IntPtr.Zero;
             },
-            this.Handle, options.Handle);
+            nameof(LevelDBInterop.leveldb_create_iterator), this.Handle, options.Handle);
 
             return new Iterator(it, _encoding);
         }
@@ -409,7 +422,7 @@ namespace LevelDB
 
                 return IntPtr.Zero;
             },
-            this.Handle);
+            nameof(LevelDBInterop.leveldb_create_snapshot), this.Handle);
 
             return new SnapShot(snapshot, this);
         }
@@ -438,7 +451,7 @@ namespace LevelDB
 
                 return IntPtr.Zero;
             },
-            this.Handle, name);
+            nameof(LevelDBInterop.leveldb_property_value), this.Handle, name);
 
             if (ptr != IntPtr.Zero)
             {
@@ -470,7 +483,7 @@ namespace LevelDB
 
                 return error;
             },
-            options.Handle, name);
+            nameof(LevelDBInterop.leveldb_repair_db), options.Handle, name);
         }
 
         /// <summary>
@@ -486,7 +499,7 @@ namespace LevelDB
 
                 return error;
             },
-            options.Handle, name);
+            nameof(LevelDBInterop.leveldb_destroy_db), options.Handle, name);
         }
 
         protected override void FreeUnManagedObjects()
@@ -499,7 +512,7 @@ namespace LevelDB
 
                     return IntPtr.Zero;
                 },
-                this.Handle);
+                nameof(LevelDBInterop.leveldb_close), this.Handle);
             }
 
             // it's critical that the database be closed first, as the logger and cache may depend on it.
