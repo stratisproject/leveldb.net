@@ -90,9 +90,15 @@ namespace LevelDB
             {
                 try
                 {
-                    logger.LogCall(funcName, args);
-                    error = func();
-                    File.Delete(_CallLog);
+                    if (logger.LogCall(funcName, args))
+                    {
+                        error = func();
+                        File.Delete(_CallLog);
+                    }
+                    else
+                    {
+                        error = func();
+                    }
                 }
                 catch (Exception x)
                 {

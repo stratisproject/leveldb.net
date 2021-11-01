@@ -103,20 +103,22 @@ namespace LevelDB
         }
 
 
-        public void LogCall(string message, params Stringable[] args)
+        public bool LogCall(string message, params Stringable[] args)
         {
-            if (this.IsDebugEnabled && CallLog != null)
-            {
-                string dateStr = DateTime.Now.ToString("[yyyy-MM-dd HH:mm:ss.fff]");
+            if (!this.IsDebugEnabled || CallLog == null)
+                return false;
 
-                StackTrace stackTrace = new StackTrace();
+            string dateStr = DateTime.Now.ToString("[yyyy-MM-dd HH:mm:ss.fff]");
 
-                callLogs.Add($"{dateStr} {message}: {ToString(args)}: { stackTrace }");
-                if (callLogs.Count > MaxCallLogs)
-                    callLogs.RemoveAt(0);
+            StackTrace stackTrace = new StackTrace();
 
-                File.WriteAllLines(CallLog, callLogs);
-            }
+            callLogs.Add($"{dateStr} {message}: {ToString(args)}: { stackTrace }");
+            if (callLogs.Count > MaxCallLogs)
+                callLogs.RemoveAt(0);
+
+            File.WriteAllLines(CallLog, callLogs);
+
+            return true;
         }
 
         public void Debug(string message, params Stringable[] args)
