@@ -69,7 +69,7 @@ namespace LevelDB
             get; set;
         }
 
-        private const int MaxCallLogs = 10;
+        private const int MaxCallLogs = 3;
 
         private List<string> callLogs;
         public readonly string CallLog;
@@ -107,9 +107,11 @@ namespace LevelDB
         {
             if (this.IsDebugEnabled && CallLog != null)
             {
+                string dateStr = DateTime.Now.ToString("[yyyy-MM-dd HH:mm:ss.fff]");
+
                 StackTrace stackTrace = new StackTrace();
 
-                callLogs.Add($"{message}: {ToString(args)} : { stackTrace }");
+                callLogs.Add($"{dateStr} {message}: {ToString(args)}: { stackTrace }");
                 if (callLogs.Count > MaxCallLogs)
                     callLogs.RemoveAt(0);
 
