@@ -26,6 +26,8 @@ namespace LevelDB
         private Comparator _Comparator;
         private Encoding _encoding;
         private static string _CallLog;
+        private static ReadOptions _DefaultReadOptions = new ReadOptions();
+        private static WriteOptions _DefaultWriteOptions = new WriteOptions();
 
         static void Throw(IntPtr error)
         {
@@ -84,17 +86,22 @@ namespace LevelDB
         {
             var error = IntPtr.Zero;
 
-            try
+            lock (logger)
             {
-                logger.LogCall(funcName, args);
-                error = func();
-            }
-            catch (Exception x)
-            {
-                logger.Error(x.ToString(), args);
+                try
+                {
+                    logger.LogCall(funcName, args);
+                    error = func();
+                    File.Delete(_CallLog);
+                }
+                catch (Exception x)
+                {
+                    logger.Error(x.ToString(), args);
+                }
             }
 
-            Throw(error);
+            if (error != IntPtr.Zero)
+                Throw(error);
         }
 
         protected void Execute(Func<IntPtr> func, string funcName, params Stringable[] args)
@@ -121,7 +128,7 @@ namespace LevelDB
         /// </summary>
         public void Put(string key, string value)
         {
-            this.Put(key, value, new WriteOptions());
+            this.Put(key, value, _DefaultWriteOptions);
         }
 
         /// <summary>
@@ -129,7 +136,7 @@ namespace LevelDB
         /// </summary>
         public void Put(byte[] key, byte[] value)
         {
-            this.Put(key, value, new WriteOptions());
+            this.Put(key, value, _DefaultWriteOptions);
         }
 
         /// <summary>
@@ -153,7 +160,7 @@ namespace LevelDB
         /// </summary>
         public void Put(int key, int[] value)
         {
-            Put(key, value, new WriteOptions());
+            Put(key, value, _DefaultWriteOptions);
         }
 
         /// <summary>
@@ -177,7 +184,7 @@ namespace LevelDB
         /// </summary>
         public void Delete(string key)
         {
-            this.Delete(key, new WriteOptions());
+            this.Delete(key, _DefaultWriteOptions);
         }
 
         /// <summary>
@@ -196,7 +203,7 @@ namespace LevelDB
         /// </summary>
         public void Delete(byte[] key)
         {
-            this.Delete(key, new WriteOptions());
+            this.Delete(key, _DefaultWriteOptions);
         }
 
         /// <summary>
@@ -217,7 +224,7 @@ namespace LevelDB
 
         public void Write(WriteBatch batch)
         {
-            Write(batch, new WriteOptions());
+            Write(batch, _DefaultWriteOptions);
         }
 
         public void Write(WriteBatch batch, WriteOptions options)
@@ -248,7 +255,7 @@ namespace LevelDB
         /// </summary>
         public string Get(string key)
         {
-            return this.Get(key, new ReadOptions());
+            return this.Get(key, _DefaultReadOptions);
         }
 
         /// <summary>
@@ -257,7 +264,7 @@ namespace LevelDB
         /// </summary>
         public byte[] Get(byte[] key)
         {
-            return this.Get(key, new ReadOptions());
+            return this.Get(key, _DefaultReadOptions);
         }
 
         /// <summary>
@@ -302,7 +309,7 @@ namespace LevelDB
         /// </summary>
         public int[] Get(int key)
         {
-            return Get(key, new ReadOptions());
+            return Get(key, _DefaultReadOptions);
         }
 
         /// <summary>
@@ -343,7 +350,7 @@ namespace LevelDB
         public NativeArray<T> GetRaw<T>(NativeArray key)
             where T : struct
         {
-            return GetRaw<T>(key, new ReadOptions());
+            return GetRaw<T>(key, _DefaultReadOptions);
         }
 
         public NativeArray<T> GetRaw<T>(NativeArray key, ReadOptions options)
@@ -385,7 +392,7 @@ namespace LevelDB
         /// </summary>
         public Iterator CreateIterator()
         {
-            return this.CreateIterator(new ReadOptions());
+            return this.CreateIterator(_DefaultReadOptions);
         }
 
         /// <summary>

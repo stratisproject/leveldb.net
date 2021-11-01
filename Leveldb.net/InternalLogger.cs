@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
@@ -106,7 +107,9 @@ namespace LevelDB
         {
             if (this.IsDebugEnabled && CallLog != null)
             {
-                callLogs.Add($"{message}: {ToString(args)}");
+                StackTrace stackTrace = new StackTrace();
+
+                callLogs.Add($"{message}: {ToString(args)} : { stackTrace }");
                 if (callLogs.Count > MaxCallLogs)
                     callLogs.RemoveAt(0);
 
