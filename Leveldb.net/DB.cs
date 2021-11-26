@@ -69,15 +69,7 @@ namespace LevelDB
             this._Logger.IsDebugEnabled = options.IsInternalDebugLoggerEnabled;
 
             if (this._Logger.IsDebugEnabled)
-            {
-                var nodeLog = InternalLogger._Logger.Factory.Configuration.ConfiguredNamedTargets
-                    .Where(t => t is NLog.Targets.FileTarget fileTarget)
-                    .Select(t => ((NLog.Targets.FileTarget)t).FileName.ToString())
-                    .FirstOrDefault();
-
-                if (nodeLog != null)
-                    _CallLog = Path.Combine(Path.GetDirectoryName(nodeLog), "LevelDBCalls.txt");
-            }
+                _CallLog = this._Logger.CallLog;
 
             Throw(error, msg => new UnauthorizedAccessException(msg));
         }
