@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 
 namespace LevelDB
@@ -59,13 +62,30 @@ namespace LevelDB
 
     public class InternalLogger
     {
-        static NLog.Logger _Logger = NLog.LogManager.GetCurrentClassLogger();
+        internal static NLog.Logger _Logger = NLog.LogManager.GetCurrentClassLogger();
 
         public bool IsDebugEnabled
         {
             get; set;
         }
 
+        private const int MaxCallLogs = 3;
+
+        private List<string> callLogs;
+        public readonly string CallLog;
+
+        private InternalLogger()
+        {
+            var nodeLog = _Logger.Factory.Configuration.ConfiguredNamedTargets
+                .Where(t => t is NLog.Targets.FileTarget fileTarget)
+                .Select(t => ((NLog.Targets.FileTarget)t).FileName.ToString())
+                .FirstOrDefault();
+
+            if (nodeLog != null)
+                CallLog = Path.Combine(Path.GetDirectoryName(nodeLog.Replace("'", "")), "LevelDB.txt");
+
+            this.callLogs = new List<string>();
+        }
 
         public static InternalLogger Create()
         {
@@ -80,6 +100,25 @@ namespace LevelDB
         protected string ToString(params Stringable[] args)
         {
             return args.Select(a => '[' + a.ToString() + ']').Aggregate((a, b) => a + ", " + b);
+        }
+
+
+        public bool LogCall(string message, params Stringable[] args)
+        {
+            if (!this.IsDebugEnabled || CallLog == null)
+                return false;
+
+            string dateStr = DateTime.Now.ToString("[yyyy-MM-dd HH:mm:ss.fff]");
+
+            StackTrace stackTrace = new StackTrace();
+
+            callLogs.Add($"{dateStr} {message}: {ToString(args)}: { stackTrace }");
+            if (callLogs.Count > MaxCallLogs)
+                callLogs.RemoveAt(0);
+
+            File.WriteAllLines(CallLog, callLogs);
+
+            return true;
         }
 
         public void Debug(string message, params Stringable[] args)

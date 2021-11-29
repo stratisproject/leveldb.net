@@ -1,6 +1,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -23,7 +25,9 @@ namespace LevelDB
         private Logger _InfoLog;
         private Comparator _Comparator;
         private Encoding _encoding;
-
+        private static string _CallLog;
+        private static ReadOptions _DefaultReadOptions = new ReadOptions();
+        private static WriteOptions _DefaultWriteOptions = new WriteOptions();
 
         static void Throw(IntPtr error)
         {
@@ -64,29 +68,43 @@ namespace LevelDB
             this._encoding = encoding;
             this._Logger.IsDebugEnabled = options.IsInternalDebugLoggerEnabled;
 
+            if (this._Logger.IsDebugEnabled)
+                _CallLog = this._Logger.CallLog;
+
             Throw(error, msg => new UnauthorizedAccessException(msg));
         }
 
-        protected static void Execute(InternalLogger logger, Func<IntPtr> func, params Stringable[] args)
+        protected static void Execute(InternalLogger logger, Func<IntPtr> func, string funcName, params Stringable[] args)
         {
             var error = IntPtr.Zero;
 
-            try
+            lock (logger)
             {
-                logger.Debug("", args);
-                error = func();
-            }
-            catch (Exception x)
-            {
-                logger.Error(x.ToString(), args);
+                try
+                {
+                    if (logger.LogCall(funcName, args))
+                    {
+                        error = func();
+                        File.Delete(_CallLog);
+                    }
+                    else
+                    {
+                        error = func();
+                    }
+                }
+                catch (Exception x)
+                {
+                    logger.Error(x.ToString(), args);
+                }
             }
 
-            Throw(error);
+            if (error != IntPtr.Zero)
+                Throw(error);
         }
 
-        protected void Execute(Func<IntPtr> func, params Stringable[] args)
+        protected void Execute(Func<IntPtr> func, string funcName, params Stringable[] args)
         {
-            Execute(_Logger, func, args);
+            Execute(_Logger, func, funcName, args);
         }
 
         public void Close()
@@ -108,7 +126,7 @@ namespace LevelDB
         /// </summary>
         public void Put(string key, string value)
         {
-            this.Put(key, value, new WriteOptions());
+            this.Put(key, value, _DefaultWriteOptions);
         }
 
         /// <summary>
@@ -116,7 +134,7 @@ namespace LevelDB
         /// </summary>
         public void Put(byte[] key, byte[] value)
         {
-            this.Put(key, value, new WriteOptions());
+            this.Put(key, value, _DefaultWriteOptions);
         }
 
         /// <summary>
@@ -131,7 +149,7 @@ namespace LevelDB
                 LevelDBInterop.leveldb_put(this.Handle, options.Handle, key, (IntPtr)key.LongLength, value, (IntPtr)value.LongLength, out error);
                 return error;
             },
-            this.Handle, key, value);
+            nameof(LevelDBInterop.leveldb_put), this.Handle, key, value);
         }
 
         /// <summary>
@@ -140,7 +158,7 @@ namespace LevelDB
         /// </summary>
         public void Put(int key, int[] value)
         {
-            Put(key, value, new WriteOptions());
+            Put(key, value, _DefaultWriteOptions);
         }
 
         /// <summary>
@@ -155,7 +173,7 @@ namespace LevelDB
                 LevelDBInterop.leveldb_put(this.Handle, options.Handle, ref key, (IntPtr)sizeof(int), value, checked((IntPtr)(value.LongLength * 4)), out error);
                 return error;
             },
-            this.Handle, key, value);
+            nameof(LevelDBInterop.leveldb_put), this.Handle, key, value);
         }
 
         /// <summary>
@@ -164,7 +182,7 @@ namespace LevelDB
         /// </summary>
         public void Delete(string key)
         {
-            this.Delete(key, new WriteOptions());
+            this.Delete(key, _DefaultWriteOptions);
         }
 
         /// <summary>
@@ -183,7 +201,7 @@ namespace LevelDB
         /// </summary>
         public void Delete(byte[] key)
         {
-            this.Delete(key, new WriteOptions());
+            this.Delete(key, _DefaultWriteOptions);
         }
 
         /// <summary>
@@ -199,12 +217,12 @@ namespace LevelDB
                 LevelDBInterop.leveldb_delete(this.Handle, options.Handle, key, (IntPtr)key.LongLength, out error);
                 return error;
             },
-            this.Handle, key);
+            nameof(LevelDBInterop.leveldb_delete), this.Handle, key);
         }
 
         public void Write(WriteBatch batch)
         {
-            Write(batch, new WriteOptions());
+            Write(batch, _DefaultWriteOptions);
         }
 
         public void Write(WriteBatch batch, WriteOptions options)
@@ -215,7 +233,7 @@ namespace LevelDB
                 LevelDBInterop.leveldb_write(this.Handle, options.Handle, batch.Handle, out error);
                 return error;
             },
-            this.Handle, options.Handle, batch.Handle);
+            nameof(LevelDBInterop.leveldb_write), this.Handle, options.Handle, batch.Handle);
         }
 
         /// <summary>
@@ -235,7 +253,7 @@ namespace LevelDB
         /// </summary>
         public string Get(string key)
         {
-            return this.Get(key, new ReadOptions());
+            return this.Get(key, _DefaultReadOptions);
         }
 
         /// <summary>
@@ -244,7 +262,7 @@ namespace LevelDB
         /// </summary>
         public byte[] Get(byte[] key)
         {
-            return this.Get(key, new ReadOptions());
+            return this.Get(key, _DefaultReadOptions);
         }
 
         /// <summary>
@@ -262,7 +280,7 @@ namespace LevelDB
                 v = LevelDBInterop.leveldb_get(this.Handle, options.Handle, key, (IntPtr)key.LongLength, out length, out error);
                 return error;
             },
-            this.Handle, options.Handle, key);
+            nameof(LevelDBInterop.leveldb_get), this.Handle, options.Handle, key);
 
             if (v != IntPtr.Zero)
             {
@@ -289,7 +307,7 @@ namespace LevelDB
         /// </summary>
         public int[] Get(int key)
         {
-            return Get(key, new ReadOptions());
+            return Get(key, _DefaultReadOptions);
         }
 
         /// <summary>
@@ -307,7 +325,7 @@ namespace LevelDB
                 v = LevelDBInterop.leveldb_get(this.Handle, options.Handle, ref key, (IntPtr)sizeof(int), out length, out error);
                 return error;
             },
-            this.Handle, options.Handle, key);
+            nameof(LevelDBInterop.leveldb_get), this.Handle, options.Handle, key);
 
             if (v != IntPtr.Zero)
             {
@@ -330,7 +348,7 @@ namespace LevelDB
         public NativeArray<T> GetRaw<T>(NativeArray key)
             where T : struct
         {
-            return GetRaw<T>(key, new ReadOptions());
+            return GetRaw<T>(key, _DefaultReadOptions);
         }
 
         public NativeArray<T> GetRaw<T>(NativeArray key, ReadOptions options)
@@ -355,7 +373,7 @@ namespace LevelDB
 
                 return error;
             },
-            this.Handle, options.Handle, key.baseAddr);
+            nameof(LevelDBInterop.leveldb_get), this.Handle, options.Handle, key.baseAddr);
 
             handle.SetHandle((IntPtr)v);
 
@@ -372,7 +390,7 @@ namespace LevelDB
         /// </summary>
         public Iterator CreateIterator()
         {
-            return this.CreateIterator(new ReadOptions());
+            return this.CreateIterator(_DefaultReadOptions);
         }
 
         /// <summary>
@@ -390,7 +408,7 @@ namespace LevelDB
 
                 return IntPtr.Zero;
             },
-            this.Handle, options.Handle);
+            nameof(LevelDBInterop.leveldb_create_iterator), this.Handle, options.Handle);
 
             return new Iterator(it, _encoding);
         }
@@ -409,7 +427,7 @@ namespace LevelDB
 
                 return IntPtr.Zero;
             },
-            this.Handle);
+            nameof(LevelDBInterop.leveldb_create_snapshot), this.Handle);
 
             return new SnapShot(snapshot, this);
         }
@@ -438,7 +456,7 @@ namespace LevelDB
 
                 return IntPtr.Zero;
             },
-            this.Handle, name);
+            nameof(LevelDBInterop.leveldb_property_value), this.Handle, name);
 
             if (ptr != IntPtr.Zero)
             {
@@ -470,7 +488,7 @@ namespace LevelDB
 
                 return error;
             },
-            options.Handle, name);
+            nameof(LevelDBInterop.leveldb_repair_db), options.Handle, name);
         }
 
         /// <summary>
@@ -486,7 +504,7 @@ namespace LevelDB
 
                 return error;
             },
-            options.Handle, name);
+            nameof(LevelDBInterop.leveldb_destroy_db), options.Handle, name);
         }
 
         protected override void FreeUnManagedObjects()
@@ -499,7 +517,7 @@ namespace LevelDB
 
                     return IntPtr.Zero;
                 },
-                this.Handle);
+                nameof(LevelDBInterop.leveldb_close), this.Handle);
             }
 
             // it's critical that the database be closed first, as the logger and cache may depend on it.
