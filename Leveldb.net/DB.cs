@@ -25,7 +25,6 @@ namespace LevelDB
         private Logger _InfoLog;
         private Comparator _Comparator;
         private Encoding _encoding;
-        private static string _CallLog;
         private static ReadOptions _DefaultReadOptions = new ReadOptions();
         private static WriteOptions _DefaultWriteOptions = new WriteOptions();
 
@@ -68,9 +67,6 @@ namespace LevelDB
             this._encoding = encoding;
             this._Logger.IsDebugEnabled = options.IsInternalDebugLoggerEnabled;
 
-            if (this._Logger.IsDebugEnabled)
-                _CallLog = this._Logger.CallLog;
-
             Throw(error, msg => new UnauthorizedAccessException(msg));
         }
 
@@ -82,15 +78,7 @@ namespace LevelDB
             {
                 try
                 {
-                    if (logger.LogCall(funcName, args))
-                    {
-                        error = func();
-                        File.Delete(_CallLog);
-                    }
-                    else
-                    {
-                        error = func();
-                    }
+                    error = func();
                 }
                 catch (Exception x)
                 {
