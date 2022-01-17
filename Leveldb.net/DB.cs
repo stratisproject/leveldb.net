@@ -83,6 +83,8 @@ namespace LevelDB
                 catch (Exception x)
                 {
                     logger.Error(x.ToString(), args);
+
+                    throw x;
                 }
             }
 
